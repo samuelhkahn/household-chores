@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Household Chores{% endblock %}</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; }
+    body { margin: 0; background: #f7f7f4; color: #20231f; }
+    header, main { width: min(70rem, calc(100% - 2rem)); margin: auto; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
+    nav { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+    a { color: #265f46; }
+    button, .button { border: 0; border-radius: .35rem; padding: .6rem .9rem; background: #265f46; color: white; cursor: pointer; text-decoration: none; }
+    .secondary { background: #e2e7e2; color: #20231f; }
+    section, .card { background: white; border: 1px solid #dfe3dc; border-radius: .6rem; padding: 1rem; margin-bottom: 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
+    label { display: block; font-weight: 600; margin-top: .75rem; }
+    input, textarea, select { box-sizing: border-box; width: 100%; max-width: 34rem; padding: .55rem; }
+    .errorlist { color: #a52121; }
+    .messages { list-style: none; padding: 0; }
+    .messages li { background: #dff2e6; padding: .7rem; border-radius: .35rem; }
+    .inline { display: inline; }
+    .status { display: inline-block; border-radius: 999px; padding: .15rem .5rem; font-size: .85rem; font-weight: 700; }
+    .status-pending { background: #fff0b8; }
+    .status-completed { background: #dff2e6; }
+    .status-overdue { background: #f8d7d7; color: #7b1515; }
+    .actions { display: flex; flex-wrap: wrap; gap: .65rem; margin: .75rem 0; }
+    .muted { color: #5e655e; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .65rem; border-bottom: 1px solid #dfe3dc; text-align: left; }
+    th { background: #f3f5f1; }
+    :focus-visible { outline: 3px solid #e6a700; outline-offset: 2px; }
+    .table-wrap { overflow-x: auto; }
+    @media (max-width: 36rem) { header { align-items: flex-start; flex-direction: column; gap: .75rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="{% url 'chores:home' %}"><strong>Household Chores</strong></a>
+    <nav aria-label="Account">
+      {% if user.is_authenticated %}
+        <span>{{ user.get_short_name }}</span>
+        <form class="inline" action="{% url 'logout' %}" method="post">
+          {% csrf_token %}<button class="secondary" type="submit">Sign out</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}">Sign in</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main>
+    {% if messages %}<ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

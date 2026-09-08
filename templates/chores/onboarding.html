@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<section>
+  <h1>Welcome</h1>
+  <p>Create a household to start organizing recurring chores.</p>
+  <a class="button" href="{% url 'chores:household-create' %}">Create household</a>
+</section>
+{% endblock %}

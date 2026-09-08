@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<section>
+  <h1>Join {{ invitation.household.name }}</h1>
+  <p>This invitation is for {{ invitation.email }}.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create account and join</button>
+  </form>
+</section>
+{% endblock %}

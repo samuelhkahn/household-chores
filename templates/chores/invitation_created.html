@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<section>
+  <h1>Invitation created</h1>
+  <p>Share this single-use link with {{ invitation.email }}. It expires {{ invitation.expires_at }}.</p>
+  <p><a href="{{ invitation_url }}">{{ invitation_url }}</a></p>
+  <a class="button" href="{% url 'chores:home' %}">Done</a>
+</section>
+{% endblock %}

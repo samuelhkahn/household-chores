@@ -1,0 +1,52 @@
+services:
+  web:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://chores:chores@db:5432/chores
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DJANGO_DEBUG: "true"
+      DJANGO_SECRET_KEY: unsafe-compose-development-key
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready/')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build: .
+    command: ["python", "manage.py", "run_scheduler"]
+    environment:
+      DATABASE_URL: postgresql://chores:chores@db:5432/chores
+      DJANGO_DEBUG: "true"
+      DJANGO_SECRET_KEY: unsafe-compose-development-key
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: chores
+      POSTGRES_USER: chores
+      POSTGRES_PASSWORD: chores
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chores -d chores"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

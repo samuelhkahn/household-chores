@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ household.name }} · Household Chores{% endblock %}
+{% block content %}
+<h1>{{ household.name }}</h1>
+<p class="muted">Week of {{ current_week }} · showing this week and the previous week</p>
+<nav class="actions" aria-label="Household actions">
+  <a class="button" href="{% url 'chores:chore-create' %}">Add chore</a>
+  <a class="button secondary" href="{% url 'chores:capacity-update' %}">Set next-week capacity</a>
+  {% if membership.is_organizer %}
+    <a class="button secondary" href="{% url 'chores:child-create' %}">Add child</a>
+    <a class="button secondary" href="{% url 'chores:invitation-create' %}">Invite adult</a>
+  {% endif %}
+</nav>
+
+<section aria-labelledby="my-chores-heading">
+  <h2 id="my-chores-heading">My chores this week</h2>
+  <div class="grid">
+    {% for occurrence in my_occurrences %}
+      <article class="card">
+        <h3>{{ occurrence.revision.name }}</h3>
+        <p>Due {{ occurrence.due_date }} · {{ occurrence.estimated_minutes }} minutes</p>
+        <span class="status status-{{ occurrence.status }}">{{ occurrence.get_status_display }}</span>
+        {% if occurrence.status != "completed" %}
+          <div class="actions">
+            <a href="{% url 'chores:occurrence-complete' occurrence.id %}">Complete</a>
+            <a href="{% url 'chores:reassignment-request' occurrence.id %}">Request reassignment</a>
+          </div>
+        {% endif %}
+      </article>
+    {% empty %}<p>No chores are assigned to you this week.</p>{% endfor %}
+  </div>
+</section>
+
+<section aria-labelledby="fairness-heading">
+  <h2 id="fairness-heading">Fairness</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Member</th><th>Capacity</th><th>Target</th><th>Assigned</th></tr></thead>
+      <tbody>
+      {% for row in fairness %}
+        <tr>
+          <td>{% if row.user %}{{ row.user.get_short_name }}{% else %}{{ row.child.name }}{% endif %}</td>
+          <td>{{ row.get_capacity_level_display }}</td>
+          <td>{{ row.adjusted_target_minutes|floatformat:0 }} min</td>
+          <td>{{ row.assigned_minutes }} min</td>
+        </tr>
+      {% empty %}<tr><td colspan="4">Fairness totals appear after Sunday allocation.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if membership.is_organizer and pending_requests %}
+<section aria-labelledby="requests-heading">
+  <h2 id="requests-heading">Pending reassignment requests</h2>
+  {% for item in pending_requests %}
+    <p>{{ item.requested_by.get_short_name }} requested reassignment of {{ item.occurrence.revision.name }}.
+      <a href="{% url 'chores:reassignment-decide' item.id %}">Review</a></p>
+  {% endfor %}
+</section>
+{% endif %}
+
+<h2>Household schedule</h2>
+<div class="grid">
+  {% for occurrence in occurrences %}
+    <article class="card">
+      <h3>{{ occurrence.revision.name }}</h3>
+      <p>Due {{ occurrence.due_date }} · {{ occurrence.estimated_minutes }} minutes</p>
+      <p>Assigned to {% if occurrence.assigned_user %}{{ occurrence.assigned_user.get_short_name }}{% elif occurrence.assigned_child %}{{ occurrence.assigned_child.name }}{% else %}nobody yet{% endif %}</p>
+      <span class="status status-{{ occurrence.status }}">{{ occurrence.get_status_display }}</span>
+      <div class="actions">
+        {% if occurrence.status != "completed" and occurrence.assigned_user_id == user.id %}<a href="{% url 'chores:occurrence-complete' occurrence.id %}">Complete</a>{% endif %}
+        {% if occurrence.status != "completed" and membership.is_organizer and occurrence.assigned_child %}<a href="{% url 'chores:occurrence-complete' occurrence.id %}">Record completion</a>{% endif %}
+        {% if occurrence.status != "completed" and membership.is_organizer %}<a href="{% url 'chores:occurrence-override' occurrence.id %}">Override</a>{% endif %}
+      </div>
+    </article>
+  {% empty %}<p>No occurrences in the visible two-week window.</p>{% endfor %}
+</div>
+
+<h2>Recurring chores</h2>
+<div class="grid">
+  {% for chore in chores %}
+    <article class="card">
+      <h3>{{ chore.latest_revision.name }}</h3>
+      <p>{{ chore.latest_revision.get_recurrence_display }} · {{ chore.latest_revision.estimated_minutes }} minutes</p>
+      <p>Effective {{ chore.latest_revision.effective_from }}</p>
+      <a href="{% url 'chores:chore-edit' chore.id %}">Edit for next week</a>
+    </article>
+  {% empty %}<p>No recurring chores yet.</p>{% endfor %}
+</div>
+{% endblock %}
